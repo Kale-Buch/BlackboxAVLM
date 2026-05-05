@@ -574,6 +574,14 @@ def main():
         help="Loss weights for each model, must match length of model_names (default is 1.0 for each)."
     )
 
+    # NEW ARGUMENT FOR AUTOMATION
+    parser.add_argument(
+        "--output_path_file",
+        type=str,
+        default=None,
+        help="Path to a file where the created experiment directory will be written."
+    )
+
     args = parser.parse_args()
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -611,6 +619,11 @@ def main():
         crop_ratio_min=args.crop_ratio_min,
         crop_ratio_max=args.crop_ratio_max
     )
+
+    # Write the output path if requested
+    if args.output_path_file:
+        with open(args.output_path_file, 'w') as f:
+            f.write(os.path.abspath(os.path.join("./runs", unique_exp_name)))
 
 if __name__ == "__main__":
     main()

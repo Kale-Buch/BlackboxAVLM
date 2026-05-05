@@ -44,15 +44,17 @@ def chunk_list(lst, n):
 
 def parse_iteration_number(filename):
     """
-    Extract iteration as int from filenames like: test_results_iter_3000.csv
-    Example: parse_iteration_number("test_results_iter_3000.csv") -> 3000
+    Extract iteration as int from filenames like: test_results_iter_3000.csv or test_results_iter_transfer_5800.csv
     """
-    # Remove prefix + suffix
-    # One approach is to do:
-    # "test_results_iter_3000.csv".replace("test_results_iter_", "").replace(".csv", "")
-    # Then cast to int.
     base = filename.replace("test_results_iter_", "").replace(".csv", "")
-    return int(base)
+    if base.startswith("transfer_"):
+        # For transfer results, we treat them as very high iteration or just extract the number
+        base = base.replace("transfer_", "")
+    try:
+        return int(base)
+    except ValueError:
+        # Fallback for non-numeric iterations (e.g. 'final')
+        return 999999
 
 for exp in exps:
     # Only load CSV files that start with "test_results_iter_" to avoid old metric files:
@@ -195,7 +197,9 @@ for exp in exps:
         plt.title(f"Unsafe Count for Each Model ({exp})")
         plt.xlabel("Iteration (numeric)")
         plt.ylabel("Unsafe Count")
-        xticks = list(range(pivot_df.index.min(), pivot_df.index.max() + 1, 500))
+        # xticks = list(range(pivot_df.index.min(), pivot_df.index.max() + 1, 500))
+        xticks = list(range(int(pivot_df.index.min()), int(pivot_df.index.max()) + 1, 500))
+
         plt.xticks(xticks, rotation=60)
         plt.legend()
         plt.tight_layout()

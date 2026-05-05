@@ -12,4 +12,4 @@ export PYTHONPATH=$PYTHONPATH:$(pwd)
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate vlm
 
-./scripts/attacks/blackbox_qwen.sh
+./scripts/attacks/attack_blackbox_qwen.sh

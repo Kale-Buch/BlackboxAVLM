@@ -6,7 +6,7 @@ import pandas as pd
 from tqdm import tqdm
 from src.processors import load_components
 
-# Определение моделей и их конфигураций
+# Defining models and their configurations
 MODELS = {
     "llama": "alpindale/Llama-3.2-11B-Vision-Instruct",
     "qwen": "Qwen/Qwen2-VL-2B-Instruct",
@@ -16,12 +16,12 @@ MODELS = {
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", choices=MODELS.keys(), required=True, help="Выбор модели")
-    parser.add_argument("--mode", choices=["reference", "shii", "gcg"], required=True, help="Выбор режима работы")
-    parser.add_argument("--device", default="cuda:0", help="Устройство для вычислений")
+    parser.add_argument("--model", choices=MODELS.keys(), required=True, help="Model choice")
+    parser.add_argument("--mode", choices=["reference", "shii", "gcg"], required=True, help="Mode choice")
+    parser.add_argument("--device", default="cuda:0", help="Device for computation")
     args = parser.parse_args()
     
-    # Загружаем модель
+    # Loading the model
     model_name = MODELS[args.model]
     device = args.device
     
