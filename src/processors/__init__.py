@@ -8,6 +8,11 @@ MODEL_MAP = {
         "input_class": "AdvPhiInputs",
         "processor_class": "DifferentiablePhi3VImageProcessor",
     },
+    "deepseek-ai/DeepSeek-VL2": {
+        "module": "processors.deepseekprocessor",
+        "input_class": "AdvDeepseekInputs",
+        "processor_class": "DifferentiableDeepseekImageProcessor",
+    },
     "Qwen/Qwen2-VL-2B-Instruct": {
         "module": "processors.qwen2VLprocessor",
         "input_class": "AdvQwen2VLInputs",

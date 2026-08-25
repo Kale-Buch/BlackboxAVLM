@@ -4,8 +4,7 @@ import argparse
 import glob
 import json
 from pathlib import Path
-
-project_root = os.path.abspath("/home/jovyan/rahmatullaev/adversarial/src")
+project_root = os.path.abspath("/mnt/DISAPP/home/kalebuch/AdversarialVLM/src")
 sys.path.append(project_root)
 
 from datetime import datetime

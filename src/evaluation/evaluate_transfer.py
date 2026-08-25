@@ -15,6 +15,88 @@ from src.processors import load_components
 from src.questions import questions, not_safe_questions, not_safe_questions_test
 from src.train_test import run_model_test
 
+def find_image_for_iteration(exp_dir, iteration):
+    import glob
+    import re
+    # 1. If iteration is "final", return final.png if it exists
+    if str(iteration).lower() == "final":
+        final_path = os.path.join(exp_dir, "optimized_image_iter_final.png")
+        if os.path.exists(final_path):
+            return final_path
+
+    # 2. Check direct iteration file
+    direct_path = os.path.join(exp_dir, f"optimized_image_iter_{iteration}.png")
+    if os.path.exists(direct_path):
+        return direct_path
+
+    # 3. Check direct iteration + 1 (legacy behavior when grad_accum_steps=1)
+    try:
+        plus_one_path = os.path.join(exp_dir, f"optimized_image_iter_{int(iteration) + 1}.png")
+        if os.path.exists(plus_one_path):
+            return plus_one_path
+    except ValueError:
+        pass
+
+    # 4. Do index matching between saved CSV files and PNG files
+    csv_pattern = os.path.join(exp_dir, "test_results_iter_*.csv")
+    csv_files = glob.glob(csv_pattern)
+    csv_iters = []
+    for f in csv_files:
+        match = re.search(r'test_results_iter_(\d+)\.csv', f)
+        if match:
+            csv_iters.append(int(match.group(1)))
+    csv_iters = sorted(csv_iters)
+
+    png_pattern = os.path.join(exp_dir, "optimized_image_iter_*.png")
+    png_files = glob.glob(png_pattern)
+    png_iters = []
+    for f in png_files:
+        match = re.search(r'optimized_image_iter_(\d+)\.png', f)
+        if match:
+            png_iters.append(int(match.group(1)))
+    png_iters = sorted(png_iters)
+
+    try:
+        target_iter_int = int(iteration)
+        if target_iter_int in csv_iters:
+            idx = csv_iters.index(target_iter_int)
+            if idx < len(png_iters):
+                mapped_png_iter = png_iters[idx]
+                mapped_path = os.path.join(exp_dir, f"optimized_image_iter_{mapped_png_iter}.png")
+                if os.path.exists(mapped_path):
+                    return mapped_path
+    except Exception:
+        pass
+
+    # 5. Fallback: ratio-based estimation
+    try:
+        target_iter_int = int(iteration)
+        if len(csv_iters) > 1 and len(png_iters) > 1:
+            first_csv = [c for c in csv_iters if c > 0]
+            first_png = [p for p in png_iters if p > 0]
+            if first_csv and first_png:
+                ratio = first_csv[0] / first_png[0]
+                estimated_png_iter = round(target_iter_int / ratio)
+                closest_png_iter = min(png_iters, key=lambda x: abs(x - estimated_png_iter))
+                closest_path = os.path.join(exp_dir, f"optimized_image_iter_{closest_png_iter}.png")
+                if os.path.exists(closest_path):
+                    return closest_path
+    except Exception:
+        pass
+
+    # 6. Fallback: closest match
+    try:
+        target_iter_int = int(iteration)
+        if png_iters:
+            closest_png_iter = min(png_iters, key=lambda x: abs(x - target_iter_int))
+            closest_path = os.path.join(exp_dir, f"optimized_image_iter_{closest_png_iter}.png")
+            if os.path.exists(closest_path):
+                return closest_path
+    except Exception:
+        pass
+
+    return os.path.join(exp_dir, f"optimized_image_iter_{iteration + 1}.png")
+
 def main():
     parser = argparse.ArgumentParser(description="Evaluate transferability of an adversarial image.")
     parser.add_argument("--exp_path", type=str, required=True, help="Path to the experiment directory (e.g., runs/exp_name)")
@@ -47,16 +129,7 @@ def main():
     print(f"Loading best iteration: {best_iter}")
     
     # 2. Load the adversarial image
-    img_path = os.path.join(args.exp_path, f"optimized_image_iter_{best_iter}.png")
-    if not os.path.exists(img_path):
-        # Fallback for when global_iteration was used (often best_iter + 1)
-        fallback_path = os.path.join(args.exp_path, f"optimized_image_iter_{best_iter + 1}.png")
-        if os.path.exists(fallback_path):
-            print(f"Adversarial image not found at {img_path}, using fallback: {fallback_path}")
-            img_path = fallback_path
-        else:
-            raise FileNotFoundError(f"Adversarial image not found: {img_path} (or {fallback_path})")
-    
+    img_path = find_image_for_iteration(args.exp_path, best_iter)
     adv_image = Image.open(img_path).convert("RGB")
     
     # 3. Load victim model and processor

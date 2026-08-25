@@ -7,9 +7,9 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
 
-cd /mnt/CS5379/home/kalebuch/AdversarialVLM
+cd /mnt/DISAPP/home/kalebuch/AdversarialVLM
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate vlm
 
-./scripts/attacks/attack_blackbox_qwen.sh
+./scripts/attacks/attack_blackbox_enhanced_qwen.sh

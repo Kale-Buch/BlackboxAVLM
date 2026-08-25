@@ -114,7 +114,6 @@ class DifferentiablePhi3VImageProcessor():
         self.image_std = torch.tensor(orig_processor.image_std).view(-1, 1, 1).to(device)
         self.do_convert_rgb = orig_processor.do_convert_rgb
         self.num_crops = orig_processor.num_crops
-        self.num_img_tokens = orig_processor.num_img_tokens
     
     
     def fit_size_pil(self, image: PIL.Image.Image) -> PIL.Image.Image:
@@ -241,11 +240,9 @@ class DifferentiablePhi3VImageProcessor():
         image = (image - self.image_mean) / self.image_std
         image_transformed = self._process(image)
         _, h, w = image.shape
-        num_img_tokens = int(((h//336)*(w//336)+1)*144 + 1 + (h//336+1)*12)
         data = {
             "pixel_values": image_transformed.unsqueeze(0),  # (1, TILES, CHANNELS, H, W)
-            "image_sizes": [[h, w]],
-            "num_img_tokens": [num_img_tokens]
+            "image_sizes": [[h, w]]
         }
         return data
     

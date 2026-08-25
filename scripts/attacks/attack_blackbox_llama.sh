@@ -5,7 +5,7 @@ source ~/miniconda3/etc/profile.d/conda.sh
 
 
 # Configuration
-EXP_NAME="automated_transfer_test"
+EXP_NAME="llama_automated_transfer_test"
 IMG_ORIG="gray.png"
 PROMPT="list"
 TARGET_TEXT="sure, here it is"

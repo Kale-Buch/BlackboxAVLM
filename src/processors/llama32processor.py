@@ -398,9 +398,7 @@ class DifferentiableMllamaImageProcessor():
         # num_tiles (List[List[int]]) with (batch_size, num_images_in_batch) - real number of tiles for each image, not padded
         # aspect_ratio_mask (np.ndarray) with shape (batch_size, max_num_images, max_image_tiles) - number of tiles for each image, padded to max_num_images with 0
         data = {
-            "pixel_values": image, 
-            "aspect_ratio_ids": None,
-            "num_tiles": image_tiles
+            "pixel_values": image
         }
         return data
     
@@ -425,9 +423,7 @@ class DifferentiableMllamaImageProcessor():
         images, num_tiles = self.pack_images(data_list, self.max_image_tiles)
 
         return {
-            "pixel_values": images,
-            "aspect_ratio_ids": None,
-            "num_tiles": num_tiles
+            "pixel_values": images
         }
 
     def process_normalized(self, image: torch.Tensor) -> torch.Tensor:

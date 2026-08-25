@@ -267,8 +267,7 @@ class DifferentiableQwen2VLImageProcessor():
         )
 
         return {
-            "pixel_values": flatten_patches,
-            "num_tiles": [grid_h * grid_w]
+            "pixel_values": flatten_patches
         }
 
     def process_batch(self, image_list: List[torch.Tensor]) -> dict:
@@ -289,10 +288,8 @@ class DifferentiableQwen2VLImageProcessor():
         for image in image_list:
             processed = self.process(image)
             pixel_values.append(processed["pixel_values"])
-            num_tiles.append(processed["num_tiles"])
         pixel_values = torch.cat(pixel_values, dim=0)
-        return {
-            "pixel_values": pixel_values,
-            "aspect_ratio_ids": None,
-            "num_tiles": num_tiles
+        data = {
+            "pixel_values": pixel_values
         }
+        return data
