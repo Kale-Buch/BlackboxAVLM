@@ -58,7 +58,7 @@ class AdvPhiInputs:
         self.device = device
         
         self.extra_token = "<|end|>\n"
-        self.shift = len(processor.tokenizer.encode(self.extra_token)) - 1 # first token is extra
+        self.shift = len(processor.tokenizer.encode(self.extra_token, add_special_tokens=False))
         
         if isinstance(target_text, list):
             self.target_texts = target_text  # Храним весь список
@@ -73,6 +73,7 @@ class AdvPhiInputs:
         self.target_tokens = self.processor.tokenizer(self.target_text+self.extra_token, return_tensors="pt", add_special_tokens=False).input_ids.to(self.device)
         self.suffix_length = self.target_tokens.shape[1]
         self.target = self.target_tokens[:, :-self.shift].repeat(self.batch_size, 1).to(self.device)
+        assert self.target.shape[1] > 0, f"Target tokens must not be empty in AdvPhiInputs! target_text='{self.target_text}', shift={self.shift}"
     
     def set_target_text(self, target_text):
         self.target_text = target_text

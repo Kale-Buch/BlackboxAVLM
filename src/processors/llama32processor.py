@@ -89,7 +89,7 @@ class AdvMllamaInputs:
         self.device = device
         
         self.extra_token = "<|eot_id|>"
-        self.shift = len(processor.tokenizer.encode(self.extra_token))
+        self.shift = len(processor.tokenizer.encode(self.extra_token, add_special_tokens=False))
 
         if isinstance(target_text, list):
             self.target_texts = target_text  # Храним весь список
@@ -104,6 +104,7 @@ class AdvMllamaInputs:
         self.target_tokens = self.processor.tokenizer(self.target_text+self.extra_token, return_tensors="pt", add_special_tokens=False).input_ids.to(self.device)
         self.suffix_length = self.target_tokens.shape[1]
         self.target = self.target_tokens[:, :-self.shift].repeat(self.batch_size, 1).to(self.device)
+        assert self.target.shape[1] > 0, f"Target tokens must not be empty in AdvMllamaInputs! target_text='{self.target_text}', shift={self.shift}"
     
     def set_target_text(self, target_text: str):
         self.target_text = target_text
@@ -149,7 +150,7 @@ class AdvMllamaInputs:
     def update_refuse_tokens(self):
         self.refuse_tokens = self.processor.tokenizer(self.refuse_text+self.extra_token, return_tensors="pt", add_special_tokens=False).input_ids.to(self.device)
         self.refuse_suffix_length = self.refuse_tokens.shape[1]
-        self.refuse = self.target_tokens[:, :-self.shift].repeat(self.batch_size, 1).to(self.device)
+        self.refuse = self.refuse_tokens[:, :-self.shift].repeat(self.batch_size, 1).to(self.device)
 
     def set_refuse(self, refuse_text: str):
         self.refuse_text = refuse_text

@@ -1,0 +1,39 @@
+#!/bin/bash
+#SBATCH --job-name=smoke_test
+#SBATCH --output=slurm_logs/smoke_test.out
+#SBATCH --error=slurm_logs/smoke_test.err
+#SBATCH --partition=h100
+#SBATCH --gres=gpu:nvidia_h100_nvl:4
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=64G
+
+cd /mnt/DISAPP/home/kalebuch/AdversarialVLM
+export PYTHONPATH=$PYTHONPATH:$(pwd)
+source ~/miniconda3/etc/profile.d/conda.sh
+conda activate vlm
+
+# ── Smoke-test overrides ────────────────────────────────────────────────────
+# Goal: get a valid end-to-end signal ASAP, not optimal ASR.
+#
+# Key cuts vs. full run:
+#   NUM_ITERATIONS 1000 → 100   (10× fewer steps)
+#   SAVE_STEPS     100  → 10    (checkpoints every 10 steps so we can
+#                                 see loss/images quickly)
+#   GRAD_ACCUM_STEPS 4  → 1    (flush gradients every step = 4× more
+#                                 optimizer steps per wall-clock minute)
+#   MODEL_NAME: drop Llama-11B  (heaviest surrogate; use Phi + LLaVA only)
+#   Query-based grad check: disabled for now (saves 2 victim forward passes
+#     per step; re-enable once logic is confirmed working)
+#
+# Everything else (victim, enhancements, pipeline flow) stays identical.
+# ───────────────────────────────────────────────────────────────────────────
+
+export EXP_NAME="smoke_test"
+export NUM_ITERATIONS=100
+export SAVE_STEPS=10
+export GRAD_ACCUM_STEPS=1
+export MODEL_NAME="microsoft/Phi-3.5-vision-instruct,llava-hf/llava-1.5-7b-hf"
+# Keep query-based gradient check off for smoke test to isolate training signal
+# (re-add --use_query_based_gradient_check once pipeline is verified)
+
+./scripts/attacks/attack_blackbox_enhanced_qwen.sh

@@ -189,6 +189,38 @@ for exp in exps:
         else:
             print(f"EXPERIMENT {exp}, no ALL_MODELS_MEAN column found.")
 
+        # ── Victim best-iter selection ─────────────────────────────────────────
+        # If the training run logged victim loss / ZO deltas, pick the checkpoint
+        # that optimized victim metrics (strictly excluding iteration 0).
+        zo_log_path = os.path.join(runs_path, exp, "victim_zo_log.csv")
+        if os.path.exists(zo_log_path):
+            try:
+                zo_df = pd.read_csv(zo_log_path)
+                if not zo_df.empty:
+                    # Filter out iteration 0 strictly
+                    iter_col = "iteration" if "iteration" in zo_df.columns else "global_iteration"
+                    zo_df_valid = zo_df[zo_df[iter_col] > 0]
+                    if not zo_df_valid.empty:
+                        if "victim_loss" in zo_df_valid.columns and not zo_df_valid["victim_loss"].isna().all():
+                            best_victim_idx = zo_df_valid["victim_loss"].idxmin()
+                            best_victim_iter = int(zo_df_valid.loc[best_victim_idx, iter_col])
+                            best_val = float(zo_df_valid.loc[best_victim_idx, "victim_loss"])
+                            print(f"EXPERIMENT {exp}, BEST VICTIM ITER {best_victim_iter} (victim_loss={best_val:.4f})")
+                        elif "avg_zo_loss_delta" in zo_df_valid.columns and not zo_df_valid["avg_zo_loss_delta"].isna().all():
+                            best_victim_idx = zo_df_valid["avg_zo_loss_delta"].idxmax()
+                            best_victim_iter = int(zo_df_valid.loc[best_victim_idx, iter_col])
+                            best_val = float(zo_df_valid.loc[best_victim_idx, "avg_zo_loss_delta"])
+                            print(f"EXPERIMENT {exp}, BEST VICTIM ITER {best_victim_iter} (avg_zo_loss_delta={best_val:.4f})")
+                        else:
+                            best_victim_iter = None
+                        if best_victim_iter is not None:
+                            with open(os.path.join(runs_path, exp, "best_victim.txt"), "w") as f:
+                                f.write(str(best_victim_iter))
+            except Exception as _ze:
+                print(f"Warning: could not parse victim_zo_log.csv for {exp}: {_ze}")
+
+
+
         # Now we plot: each column is a line, iteration on the x-axis
         plt.figure(figsize=(12, 6))
         for col in pivot_df.columns:

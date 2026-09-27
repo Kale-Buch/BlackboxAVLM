@@ -12,4 +12,14 @@ export PYTHONPATH=$PYTHONPATH:$(pwd)
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate vlm
 
-./scripts/attacks/attack_blackbox_enhanced_qwen.sh
+# ── Victim (blackbox query-only) ───────────────────────────────────────────────
+export VICTIM="Qwen/Qwen2-VL-2B-Instruct"
+export VICTIM_SUFFIX="qwenVL"
+
+# ── Surrogates (white-box, must exclude victim) ────────────────────────────────
+export MODEL_NAME="microsoft/Phi-3.5-vision-instruct,alpindale/Llama-3.2-11B-Vision-Instruct,llava-hf/llava-1.5-7b-hf"
+
+export EXP_NAME="qwen_atk_enhanced_transfer"
+
+./scripts/attacks/attack_blackbox_enhanced.sh
+

@@ -7,9 +7,19 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
 
-cd /mnt/CS5379/home/kalebuch/AdversarialVLM
+cd /mnt/DISAPP/home/kalebuch/AdversarialVLM
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate vlm
 
-./scripts/attacks/attack_blackbox_enhanced_phi.sh
+# ── Victim (blackbox query-only) ───────────────────────────────────────────────
+export VICTIM="microsoft/Phi-3.5-vision-instruct"
+export VICTIM_SUFFIX="phi35"
+
+# ── Surrogates (white-box, must exclude victim) ────────────────────────────────
+export MODEL_NAME="Qwen/Qwen2-VL-2B-Instruct,alpindale/Llama-3.2-11B-Vision-Instruct,llava-hf/llava-1.5-7b-hf"
+
+export EXP_NAME="phi_atk_enhanced_transfer"
+
+./scripts/attacks/attack_blackbox_enhanced.sh
+
